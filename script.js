@@ -1,11 +1,73 @@
+"use strict";
+
+// prettier-ignore
+const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+const form = document.querySelector(".form");
+const containerWorkouts = document.querySelector(".workouts");
+const inputType = document.querySelector(".form__input--type");
+const inputDistance = document.querySelector(".form__input--distance");
+const inputDuration = document.querySelector(".form__input--duration");
+const inputCadence = document.querySelector(".form__input--cadence");
+const inputElevation = document.querySelector(".form__input--elevation");
+
+let map, mapEvent;
+
 if (navigator.geolocation)
   navigator.geolocation.getCurrentPosition(
     function (position) {
       const { latitude, longitude } = position.coords;
 
-      console.log(latitude, longitude);
+      const coords = [latitude, longitude];
+
+      map = L.map("map").setView(coords, 17);
+
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(map);
+
+      map.on("click", function (mapE) {
+        mapEvent = mapE;
+
+        form.classList.remove("hidden");
+        inputDistance.focus();
+      });
     },
     function () {
       alert("failed to get location........");
     }
   );
+
+inputType.addEventListener("change", function () {
+  inputCadence.closest(".form__row").classList.toggle("form__row--hidden");
+  inputElevation.closest(".form__row").classList.toggle("form__row--hidden");
+});
+
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const { lat, lng } = mapEvent.latlng;
+
+  L.marker([lat, lng])
+    .addTo(map)
+    .bindPopup(
+      L.popup({
+        minWidth: 200,
+        maxHeight: 100,
+        autoClose: false,
+        closeOnClick: false,
+        className: `${inputType.value}-popup`,
+      })
+    )
+    .openPopup()
+    .setPopupContent(inputType.value);
+
+  inputElevation.value =
+    inputDuration.value =
+    inputCadence.value =
+    inputDistance.value =
+      "";
+
+  form.classList.add("hidden");
+});
