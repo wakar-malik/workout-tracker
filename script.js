@@ -12,13 +12,35 @@ const inputCadence = document.querySelector(".form__input--cadence");
 const inputElevation = document.querySelector(".form__input--elevation");
 
 class Workout {
-  id = (Date.now() + "").slice(-10);
   date = new Date();
+  id = (Date.now() + "").slice(-10);
 
   constructor(coords, distance, duration) {
     this.coords = coords; // [lat lng]
     this.distance = distance; // in km
     this.duration = duration; // in min
+  }
+}
+
+class Running extends Workout {
+  constructor(coords, distance, duration, cadence) {
+    super(coords, distance, duration);
+    this.cadence = cadence;
+  }
+
+  calcPace() {
+    this.pace = this.distance / this.duration;
+  }
+}
+
+class Cycling extends Workout {
+  constructor(coords, distance, duration, elevationGain) {
+    super(coords, distance, duration);
+    this.elevationGain = elevationGain;
+  }
+
+  calcSpeed() {
+    this.speed = this.distance / (this.duration / 60);
   }
 }
 
@@ -78,8 +100,9 @@ class App {
     // console.log("submitting..........");
 
     const { lat, lng } = this.#mapEvent.latlng;
+    const coords = [lat, lng];
 
-    L.marker([lat, lng])
+    L.marker(coords)
       .addTo(this.#map)
       .bindPopup(
         L.popup({
@@ -92,6 +115,24 @@ class App {
       )
       .openPopup()
       .setPopupContent(inputType.value);
+
+    if (inputType.value === "running") {
+      const running = new Running(
+        coords,
+        inputDistance.value,
+        inputDuration.value,
+        inputCadence.value
+      );
+      console.log(running);
+    } else {
+      const cycle = new Cycling(
+        coords,
+        inputDistance.value,
+        inputDuration.value,
+        inputElevation.value
+      );
+      console.log(cycle);
+    }
 
     inputElevation.value =
       inputDuration.value =
